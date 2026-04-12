@@ -29,7 +29,57 @@ const Flashcards: React.FC<FlashcardsProps> = ({ flashcards, onUpdate }) => {
   const [isFlipped, setIsFlipped] = React.useState(false);
   const [showReviewOnly, setShowReviewOnly] = React.useState(true);
   const [isCapturing, setIsCapturing] = React.useState(false);
+  const [streak, setStreak] = React.useState<number>(() => {
+    const saved = localStorage.getItem('cams_flashcard_streak');
+    const lastDate = localStorage.getItem('cams_last_review_date');
+    if (!saved || !lastDate) return 0;
+    
+    const last = new Date(lastDate);
+    const today = new Date();
+    last.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    const diffTime = Math.abs(today.getTime() - last.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 1) return parseInt(saved);
+    return 0;
+  });
   const cardRef = React.useRef<HTMLDivElement>(null);
+
+  const updateStreak = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const lastDateStr = localStorage.getItem('cams_last_review_date');
+    
+    if (!lastDateStr) {
+      setStreak(1);
+      localStorage.setItem('cams_flashcard_streak', '1');
+      localStorage.setItem('cams_last_review_date', today.toISOString());
+      return;
+    }
+
+    const lastDate = new Date(lastDateStr);
+    lastDate.setHours(0, 0, 0, 0);
+    
+    const diffTime = today.getTime() - lastDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      localStorage.setItem('cams_flashcard_streak', newStreak.toString());
+      localStorage.setItem('cams_last_review_date', today.toISOString());
+    } else if (diffDays > 1) {
+      setStreak(1);
+      localStorage.setItem('cams_flashcard_streak', '1');
+      localStorage.setItem('cams_last_review_date', today.toISOString());
+    } else if (diffDays === 0 && streak === 0) {
+      setStreak(1);
+      localStorage.setItem('cams_flashcard_streak', '1');
+      localStorage.setItem('cams_last_review_date', today.toISOString());
+    }
+  };
 
   const dueCards = React.useMemo(() => {
     const now = Date.now();
@@ -65,6 +115,7 @@ const Flashcards: React.FC<FlashcardsProps> = ({ flashcards, onUpdate }) => {
 
     const newFlashcards = flashcards.map(f => f.id === updatedCard.id ? updatedCard : f);
     onUpdate(newFlashcards);
+    updateStreak();
     
     // Move to next card
     setIsFlipped(false);
@@ -150,9 +201,20 @@ const Flashcards: React.FC<FlashcardsProps> = ({ flashcards, onUpdate }) => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Flashcard Review</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              {currentIndex + 1} of {dueCards.length} cards {showReviewOnly ? 'due' : 'total'}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                {currentIndex + 1} of {dueCards.length} cards {showReviewOnly ? 'due' : 'total'}
+              </p>
+              {streak > 0 && (
+                <>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <div className="flex items-center gap-1 text-orange-500 font-bold text-sm">
+                    <Sparkles size={14} />
+                    <span>{streak} Day Streak</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -188,7 +250,7 @@ const Flashcards: React.FC<FlashcardsProps> = ({ flashcards, onUpdate }) => {
         </div>
       </div>
 
-      <div className="relative h-96 perspective-1000">
+      <div className="relative h-[350px] sm:h-[400px] lg:h-[450px] perspective-1000">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentCard?.id}
@@ -205,54 +267,54 @@ const Flashcards: React.FC<FlashcardsProps> = ({ flashcards, onUpdate }) => {
               onClick={() => setIsFlipped(!isFlipped)}
             >
               {/* Front */}
-              <div className="absolute inset-0 backface-hidden bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 shadow-xl flex flex-col items-center justify-center p-12 text-center">
-                <div className="absolute top-6 left-6 flex items-center gap-2">
-                  <ShieldCheck className="text-blue-600" size={14} />
-                  <span className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">AML Study Card</span>
+              <div className="absolute inset-0 backface-hidden bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 shadow-xl flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 text-center overflow-y-auto">
+                <div className="absolute top-3 left-3 sm:top-6 sm:left-6 flex items-center gap-2">
+                  <ShieldCheck className="text-blue-600" size={12} />
+                  <span className="text-[8px] sm:text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">AML Study Card</span>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                <h3 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight px-2">
                   {currentCard?.front}
                 </h3>
                 {currentCard?.imageDescription && (
-                  <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 w-full">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Visual Scenario</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                  <div className="mt-3 sm:mt-6 p-2 sm:p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 w-full max-w-[95%] mx-auto">
+                    <p className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Visual Scenario</p>
+                    <p className="text-[9px] sm:text-xs text-slate-500 dark:text-slate-400 italic">
                       {currentCard.imageDescription}
                     </p>
                   </div>
                 )}
                 {!isCapturing && (
-                  <p className="mt-8 text-slate-400 text-sm font-medium flex items-center gap-2">
-                    <Sparkles size={14} />
-                    Click to reveal answer
+                  <p className="mt-4 sm:mt-8 text-slate-400 text-[9px] sm:text-sm font-medium flex items-center gap-2">
+                    <Sparkles size={12} />
+                    Tap to reveal answer
                   </p>
                 )}
-                <div className="absolute bottom-6 right-6 text-[8px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-widest">
-                  Developed by Tanvir
+                <div className="absolute bottom-3 right-3 sm:bottom-6 sm:right-6 text-[7px] sm:text-[8px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-widest">
+                  v7.0 Guide
                 </div>
               </div>
 
               {/* Back */}
               <div 
-                className="absolute inset-0 backface-hidden bg-blue-600 rounded-3xl shadow-xl flex flex-col items-center justify-center p-12 text-center text-white"
+                className="absolute inset-0 backface-hidden bg-blue-600 rounded-3xl shadow-xl flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 text-center text-white overflow-y-auto"
                 style={{ transform: 'rotateY(180deg)' }}
               >
-                <div className="absolute top-6 left-6 flex items-center gap-2">
-                  <ShieldCheck className="text-blue-200" size={14} />
-                  <span className="text-[10px] font-black text-blue-200 uppercase tracking-widest">AML Answer</span>
+                <div className="absolute top-3 left-3 sm:top-6 sm:left-6 flex items-center gap-2">
+                  <ShieldCheck className="text-blue-200" size={12} />
+                  <span className="text-[8px] sm:text-[10px] font-black text-blue-200 uppercase tracking-widest">AML Answer</span>
                 </div>
-                <div className="prose prose-invert max-w-none">
-                  <p className="text-xl font-medium leading-relaxed">
+                <div className="prose prose-invert max-w-none px-2">
+                  <p className="text-sm sm:text-lg lg:text-xl font-medium leading-relaxed">
                     {currentCard?.back}
                   </p>
                 </div>
                 {!isCapturing && (
-                  <p className="mt-8 text-blue-200 text-sm font-medium">
+                  <p className="mt-4 sm:mt-8 text-blue-200 text-[9px] sm:text-sm font-medium">
                     Rate your recall below
                   </p>
                 )}
-                <div className="absolute bottom-6 right-6 text-[8px] font-bold text-blue-400 uppercase tracking-widest">
-                  Developed by Tanvir
+                <div className="absolute bottom-3 right-3 sm:bottom-6 sm:right-6 text-[7px] sm:text-[8px] font-bold text-blue-400 uppercase tracking-widest">
+                  v7.0 Guide
                 </div>
               </div>
             </motion.div>
@@ -264,7 +326,7 @@ const Flashcards: React.FC<FlashcardsProps> = ({ flashcards, onUpdate }) => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-4 gap-3"
+          className="grid grid-cols-4 gap-2 sm:gap-3"
         >
           {[
             { q: 1, label: 'Forgot', color: 'bg-red-500' },
@@ -276,7 +338,7 @@ const Flashcards: React.FC<FlashcardsProps> = ({ flashcards, onUpdate }) => {
               key={btn.q}
               onClick={() => handleSRSReview(btn.q)}
               className={cn(
-                "py-4 rounded-2xl text-white font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg",
+                "py-3 sm:py-4 rounded-xl sm:rounded-2xl text-white text-xs sm:text-base font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg",
                 btn.color
               )}
             >

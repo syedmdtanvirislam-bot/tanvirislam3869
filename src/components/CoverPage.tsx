@@ -67,7 +67,7 @@ const CoverPage: React.FC<CoverPageProps> = ({ onEnter }) => {
               onClick={onEnter}
               className="group relative px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-2xl shadow-blue-500/40 hover:bg-blue-500 transition-all flex items-center gap-3 overflow-hidden"
             >
-              <span className="relative z-10">START YOUR JOURNEY</span>
+              <span className="relative z-10">GO TO DASHBOARD</span>
               <ArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform" size={20} />
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </button>

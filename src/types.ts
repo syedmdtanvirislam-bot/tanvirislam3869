@@ -4,7 +4,8 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation: string;
-  category: 'AML Regulations' | 'Financial Crimes' | 'Compliance Programs' | 'International Standards';
+  category: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export interface StudyTopic {

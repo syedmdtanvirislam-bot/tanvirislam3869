@@ -1,0 +1,174 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches auth.uid)
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - email: string (required) - User email
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - theme: string (optional, enum: ['light', 'dark'])
+    //   - lastActive: string (optional, ISO 8601)
+    //   - role: string (required, enum: ['user', 'admin'])
+    //
+    // Collection: progress
+    // Document ID: {userId} (matches auth.uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - completedChapters: list (required)
+    //   - quizScores: map (required)
+    //   - totalPoints: number (required)
+    //
+    // Collection: notes
+    // Document ID: {noteId}
+    // Fields:
+    //   - id: string (required)
+    //   - uid: string (required)
+    //   - topicId: string (required)
+    //   - content: string (required)
+    //   - updatedAt: string (required, ISO 8601)
+    //
+    // Collection: books
+    // Document ID: {bookId}
+    // Fields:
+    //   - id: string (required)
+    //   - title: string (required)
+    //   - author: string (optional)
+    //   - description: string (optional)
+    //   - coverUrl: string (optional)
+    //   - fileURL: string (required)
+    //   - isFree: bool (required)
+    //   - price: number (optional)
+    //   - category: string (optional)
+    //
+    // Collection: user_books
+    // Document ID: {unlockId}
+    // Fields:
+    //   - uid: string (required)
+    //   - bookId: string (required)
+    //   - unlocked: bool (required)
+    //   - unlockedAt: string (required, ISO 8601)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "syed.mdtanvirislam@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'theme', 'lastActive', 'role']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             (data.role == 'user' || data.role == 'admin') &&
+             (!('theme' in data) || data.theme in ['light', 'dark']) &&
+             (!('lastActive' in data) || isValidDateString(data.lastActive));
+    }
+
+    function isValidProgress(data) {
+      return hasOnlyAllowedFields(['uid', 'completedChapters', 'quizScores', 'totalPoints']) &&
+             data.uid == request.auth.uid &&
+             data.completedChapters is list &&
+             data.quizScores is map &&
+             data.totalPoints is number;
+    }
+
+    function isValidNote(data) {
+      return hasOnlyAllowedFields(['id', 'uid', 'topicId', 'content', 'updatedAt']) &&
+             data.uid == request.auth.uid &&
+             data.topicId is string &&
+             data.content is string &&
+             data.content.size() < 5000 &&
+             isValidDateString(data.updatedAt);
+    }
+
+    function isValidBook(data) {
+      return hasOnlyAllowedFields(['id', 'title', 'author', 'description', 'coverUrl', 'fileURL', 'isFree', 'price', 'category']) &&
+             data.id is string &&
+             data.title is string &&
+             data.fileURL is string &&
+             data.isFree is bool;
+    }
+
+    function isValidUserBook(data) {
+      return hasOnlyAllowedFields(['uid', 'bookId', 'unlocked', 'unlockedAt']) &&
+             data.uid == request.auth.uid &&
+             data.bookId is string &&
+             data.unlocked is bool &&
+             isValidDateString(data.unlockedAt);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /progress/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) && isValidProgress(request.resource.data);
+    }
+
+    match /notes/{noteId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidNote(request.resource.data);
+      allow update: if isDocOwner() && isValidNote(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /books/{bookId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /user_books/{unlockId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidUserBook(request.resource.data);
+      allow update: if isDocOwner() && isValidUserBook(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}

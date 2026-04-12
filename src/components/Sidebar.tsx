@@ -10,9 +10,12 @@ import {
   ShieldCheck,
   Menu,
   X,
-  FileSearch
+  LogOut,
+  LogIn
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useAuth } from '../AuthContext';
+import { loginWithGoogle, logout } from '../firebase';
 
 interface SidebarProps {
   activeTab: string;
@@ -20,6 +23,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+  const { user, profile } = useAuth();
   const [isOpen, setIsOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -41,9 +45,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'study', label: 'Study Guide', icon: BookOpen },
+    { id: 'ebooks', label: 'Ebooks', icon: ShieldCheck },
     { id: 'quiz', label: 'Practice Quiz', icon: GraduationCap },
     { id: 'tutor', label: 'AI Tutor', icon: MessageSquare },
-    { id: 'analyzer', label: 'Doc Analyzer', icon: FileSearch },
     { id: 'news', label: 'AML News', icon: Newspaper },
   ].filter(item => !(item.id === 'tutor' && isSharedLink));
 
@@ -51,9 +55,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
     <>
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="text-blue-600" size={24} />
-          <span className="font-bold text-slate-900 dark:text-white">AML</span>
+        <div 
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => setActiveTab('dashboard')}
+        >
+          <div className="p-1.5 bg-blue-600 rounded-lg">
+            <LayoutDashboard className="text-white" size={18} />
+          </div>
+          <span className="font-bold text-slate-900 dark:text-white">Dashboard</span>
         </div>
         <button 
           onClick={() => setIsOpen(!isOpen)}
@@ -115,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
             ))}
           </nav>
 
-          <div className="p-6 border-t border-slate-800/50">
+          <div className="p-6 border-t border-slate-800/50 space-y-2">
             <button 
               onClick={() => {
                 setActiveTab('settings');
@@ -134,6 +143,39 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
               )} />
               <span className="font-bold text-sm tracking-tight">Settings</span>
             </button>
+
+            {user ? (
+              <button 
+                onClick={() => logout()}
+                className="flex items-center gap-3.5 w-full px-4 py-3.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-all duration-200 group"
+              >
+                <LogOut size={20} className="group-hover:scale-110 transition-transform" />
+                <span className="font-bold text-sm tracking-tight">Logout</span>
+              </button>
+            ) : (
+              <button 
+                onClick={() => loginWithGoogle()}
+                className="flex items-center gap-3.5 w-full px-4 py-3.5 rounded-xl text-blue-400 hover:bg-blue-500/10 transition-all duration-200 group"
+              >
+                <LogIn size={20} className="group-hover:scale-110 transition-transform" />
+                <span className="font-bold text-sm tracking-tight">Sign In</span>
+              </button>
+            )}
+
+            {user && (
+              <div className="flex items-center gap-3 px-4 py-2 mt-2">
+                <img 
+                  src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`} 
+                  alt="Profile" 
+                  className="w-8 h-8 rounded-full border border-slate-700"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-white truncate">{user.displayName}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

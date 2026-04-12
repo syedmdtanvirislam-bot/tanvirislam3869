@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Stores user preferences and progress",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "theme": { "type": "string", "enum": ["light", "dark"] },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "role": { "type": "string", "enum": ["user", "admin"] }
+      },
+      "required": ["uid", "email"]
+    },
+    "userProgress": {
+      "title": "User Progress",
+      "description": "Tracks chapter completion and quiz scores",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "completedChapters": { "type": "array", "items": { "type": "string" } },
+        "quizScores": { 
+          "type": "object", 
+          "description": "Map of quizId to best score"
+        },
+        "totalPoints": { "type": "number" }
+      },
+      "required": ["uid"]
+    },
+    "note": {
+      "title": "User Note",
+      "description": "Personal notes on study topics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "topicId": { "type": "string" },
+        "content": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "topicId", "content"]
+    },
+    "book": {
+      "title": "Ebook",
+      "description": "Metadata for a PDF ebook",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "description": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "fileURL": { "type": "string" },
+        "isFree": { "type": "boolean" },
+        "price": { "type": "number" },
+        "category": { "type": "string" }
+      },
+      "required": ["id", "title", "fileURL"]
+    },
+    "userBook": {
+      "title": "User Book Unlock",
+      "description": "Tracks which books a user has unlocked",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "bookId": { "type": "string" },
+        "unlocked": { "type": "boolean" },
+        "unlockedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "bookId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "userProfile",
+      "description": "User profile data"
+    },
+    "/progress/{userId}": {
+      "schema": "userProgress",
+      "description": "User learning progress"
+    },
+    "/notes/{noteId}": {
+      "schema": "note",
+      "description": "User study notes"
+    },
+    "/books/{bookId}": {
+      "schema": "book",
+      "description": "Available ebooks"
+    },
+    "/user_books/{unlockId}": {
+      "schema": "userBook",
+      "description": "User book access records"
+    }
+  }
+}

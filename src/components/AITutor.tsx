@@ -10,11 +10,13 @@ import {
   Loader2,
   Info
 } from 'lucide-react';
-import { getGeneralResponse, explainComplianceScenario } from '../services/geminiService';
+import { getAITutorResponse, getGeneralResponse } from '../gemini';
 import { ChatMessage } from '../types';
 import { cn } from '../lib/utils';
+import { useAuth } from '../AuthContext';
 
 const AITutor: React.FC = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = React.useState<ChatMessage[]>([
     {
       role: 'assistant',
@@ -51,7 +53,7 @@ const AITutor: React.FC = () => {
     try {
       let responseContent = '';
       if (isThinkingMode) {
-        responseContent = await explainComplianceScenario(input);
+        responseContent = await getAITutorResponse(input, "The user is studying for the CAMS exam. Help them with their query.");
       } else {
         responseContent = await getGeneralResponse(input);
       }
