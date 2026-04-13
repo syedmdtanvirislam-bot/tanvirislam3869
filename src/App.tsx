@@ -13,7 +13,6 @@ import AITutor from './components/AITutor';
 import NewsFeed from './components/NewsFeed';
 import CoverPage from './components/CoverPage';
 import Settings from './components/Settings';
-import EbookApp from './components/ebook/EbookApp';
 import { ShieldCheck } from 'lucide-react';
 
 function AppContent() {
@@ -47,8 +46,6 @@ function AppContent() {
         return <Dashboard />;
       case 'study':
         return <StudyGuide />;
-      case 'ebooks':
-        return <EbookApp />;
       case 'quiz':
         return <Quiz />;
       case 'tutor':

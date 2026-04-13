@@ -46,8 +46,8 @@ const CoverPage: React.FC<CoverPageProps> = ({ onEnter }) => {
             
             <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-none mb-4">
               AML <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 text-3xl md:text-6xl">
-                DEVELOPED BY TANVIR
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 text-3xl md:text-6xl uppercase">
+                DEVELOPED BY TANVIR ISLAM
               </span>
             </h1>
             
@@ -88,7 +88,7 @@ const CoverPage: React.FC<CoverPageProps> = ({ onEnter }) => {
                 <GraduationCap size={24} />
               </div>
               <p className="text-white font-bold">Expert Led</p>
-              <p className="text-xs text-slate-500">Developed by Tanvir</p>
+              <p className="text-xs text-slate-500">Developed by Tanvir Islam</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <div className="p-3 bg-slate-800 rounded-xl text-purple-400">

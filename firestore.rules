@@ -34,27 +34,6 @@ service cloud.firestore {
     //   - content: string (required)
     //   - updatedAt: string (required, ISO 8601)
     //
-    // Collection: books
-    // Document ID: {bookId}
-    // Fields:
-    //   - id: string (required)
-    //   - title: string (required)
-    //   - author: string (optional)
-    //   - description: string (optional)
-    //   - coverUrl: string (optional)
-    //   - fileURL: string (required)
-    //   - isFree: bool (required)
-    //   - price: number (optional)
-    //   - category: string (optional)
-    //
-    // Collection: user_books
-    // Document ID: {unlockId}
-    // Fields:
-    //   - uid: string (required)
-    //   - bookId: string (required)
-    //   - unlocked: bool (required)
-    //   - unlockedAt: string (required, ISO 8601)
-    //
     // ===============================================================
 
     // ===============================================================
@@ -121,22 +100,6 @@ service cloud.firestore {
              isValidDateString(data.updatedAt);
     }
 
-    function isValidBook(data) {
-      return hasOnlyAllowedFields(['id', 'title', 'author', 'description', 'coverUrl', 'fileURL', 'isFree', 'price', 'category']) &&
-             data.id is string &&
-             data.title is string &&
-             data.fileURL is string &&
-             data.isFree is bool;
-    }
-
-    function isValidUserBook(data) {
-      return hasOnlyAllowedFields(['uid', 'bookId', 'unlocked', 'unlockedAt']) &&
-             data.uid == request.auth.uid &&
-             data.bookId is string &&
-             data.unlocked is bool &&
-             isValidDateString(data.unlockedAt);
-    }
-
     // ===============================================================
     // Rules
     // ===============================================================
@@ -157,18 +120,6 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidNote(request.resource.data);
       allow update: if isDocOwner() && isValidNote(request.resource.data);
       allow delete: if isDocOwner() || isAdmin();
-    }
-
-    match /books/{bookId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
-    match /user_books/{unlockId} {
-      allow read: if isDocOwner() || isAdmin();
-      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidUserBook(request.resource.data);
-      allow update: if isDocOwner() && isValidUserBook(request.resource.data);
-      allow delete: if isAdmin();
     }
   }
 }

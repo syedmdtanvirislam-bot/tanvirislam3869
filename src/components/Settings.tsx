@@ -5,14 +5,12 @@ import {
   Sun, 
   Bell, 
   Shield, 
-  User, 
   Globe, 
   Database,
   CheckCircle2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../AuthContext';
-import { loginWithGoogle, logout } from '../firebase';
 
 const Settings: React.FC = () => {
   const { user, profile } = useAuth();
@@ -80,7 +78,6 @@ const Settings: React.FC = () => {
             { id: 'general', label: 'General', icon: Globe },
             { id: 'notifications', label: 'Notifications', icon: Bell },
             { id: 'security', label: 'Security', icon: Shield },
-            { id: 'account', label: 'Account', icon: User },
             { id: 'data', label: 'Data & Privacy', icon: Database },
           ].map((item) => (
             <button
@@ -100,58 +97,6 @@ const Settings: React.FC = () => {
 
         {/* Settings Content */}
         <div className="md:col-span-2 space-y-6">
-          {/* Account Section */}
-          <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-50 dark:border-slate-700">
-              <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <User size={18} className="text-blue-500" />
-                Account Profile
-              </h3>
-            </div>
-            <div className="p-6">
-              {user ? (
-                <div className="flex items-center gap-6">
-                  <img 
-                    src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`} 
-                    alt="Profile" 
-                    className="w-20 h-20 rounded-2xl border-4 border-slate-50 dark:border-slate-700 shadow-sm"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="flex-1">
-                    <h4 className="text-xl font-black text-slate-900 dark:text-white">{user.displayName}</h4>
-                    <p className="text-slate-500 dark:text-slate-400">{user.email}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded text-[10px] font-black uppercase tracking-widest">
-                        {profile?.role || 'User'}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        Member since {new Date(user.metadata.creationTime || Date.now()).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => logout()}
-                    className="px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <User className="mx-auto text-slate-200 dark:text-slate-700 mb-4" size={48} />
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Not Signed In</h4>
-                  <p className="text-slate-500 dark:text-slate-400 mb-6">Sign in to sync your progress across devices.</p>
-                  <button 
-                    onClick={() => loginWithGoogle()}
-                    className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20"
-                  >
-                    Sign In with Google
-                  </button>
-                </div>
-              )}
-            </div>
-          </section>
-
           {/* Appearance Section */}
           <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-50 dark:border-slate-700">

@@ -42,35 +42,6 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "topicId", "content"]
-    },
-    "book": {
-      "title": "Ebook",
-      "description": "Metadata for a PDF ebook",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "author": { "type": "string" },
-        "description": { "type": "string" },
-        "coverUrl": { "type": "string" },
-        "fileURL": { "type": "string" },
-        "isFree": { "type": "boolean" },
-        "price": { "type": "number" },
-        "category": { "type": "string" }
-      },
-      "required": ["id", "title", "fileURL"]
-    },
-    "userBook": {
-      "title": "User Book Unlock",
-      "description": "Tracks which books a user has unlocked",
-      "type": "object",
-      "properties": {
-        "uid": { "type": "string" },
-        "bookId": { "type": "string" },
-        "unlocked": { "type": "boolean" },
-        "unlockedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["uid", "bookId"]
     }
   },
   "firestore": {
@@ -85,14 +56,6 @@
     "/notes/{noteId}": {
       "schema": "note",
       "description": "User study notes"
-    },
-    "/books/{bookId}": {
-      "schema": "book",
-      "description": "Available ebooks"
-    },
-    "/user_books/{unlockId}": {
-      "schema": "userBook",
-      "description": "User book access records"
     }
   }
 }

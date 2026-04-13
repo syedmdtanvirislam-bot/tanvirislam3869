@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h2 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            {user ? `Welcome, ${user.displayName?.split(' ')[0]}` : 'AML'}
+            AML Dashboard
           </h2>
           <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl">Track your CAMS exam preparation progress and latest updates.</p>
         </div>
